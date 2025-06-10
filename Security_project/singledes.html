@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DES Encryption Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f0f0f0;
+      display: flex;
+      height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      max-width: 600px;
+      margin: auto;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .examples {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      margin: 20px 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    input, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .output {
+      margin-top: 20px;
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    .example-card {
+      background: #e8f5e9;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .example-card button {
+      background-color: #4CAF50;
+    }
+    .example-card button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>DES Encryption Simulation</h2>
+
+  <label for="message">Enter Message:</label>
+  <input type="text" id="message" placeholder="Enter your message here">
+
+  <label for="key">Enter 8-character Key:</label>
+  <input type="text" id="key" maxlength="8" placeholder="Exactly 8 characters">
+
+  <button onclick="encrypt()">Encrypt</button>
+  <button onclick="decrypt()">Decrypt</button>
+  <button onclick="nextStep()">Next Step</button>
+  <button onclick="goBack()">Back</button>
+
+  <div class="output" id="output"></div>
+</div>
+
+<div class="examples">
+  <h2>Examples</h2>
+
+  <div class="example-card">
+    <strong>Message:</strong> hello123<br>
+    <strong>Key:</strong> keyfirst<br>
+    <button onclick="fillExample('hello123', 'keyfirst')">Use this Example</button>
+  </div>
+
+  <div class="example-card">
+    <strong>Message:</strong> mysecret<br>
+    <strong>Key:</strong> secret11<br>
+    <button onclick="fillExample('mysecret', 'secret11')">Use this Example</button>
+  </div>
+
+  <div class="example-card">
+    <strong>Message:</strong> abcdefgh<br>
+    <strong>Key:</strong> key12345<br>
+    <button onclick="fillExample('abcdefgh', 'key12345')">Use this Example</button>
+  </div>
+
+  <div class="example-card">
+    <strong>Message:</strong> example1<br>
+    <strong>Key:</strong> key11111<br>
+    <button onclick="fillExample('example1', 'key11111')">Use this Example</button>
+  </div>
+</div>
+
+<script>
+  let storedCipher = '';
+  let storedNonce = '';
+  let storedTag = '';
+
+  let encryptionSteps = [];
+  let decryptionSteps = [];
+  let currentStep = 0;
+  let mode = '';
+
+  function toHexString(str) {
+    return Array.from(str)
+      .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
+      .join(' ');
+  }
+  // هنا بننفذ تشفير XOR بين كل حرف من الرسالة وحرف من المفتاح 
+
+  function simpleDES(text, key) {
+    let result = '';
+    let steps = [];
+    for (let i = 0; i < text.length; i++) {
+      const originalChar = text[i];
+      const keyChar = key[i % key.length];
+      const xorResult = text.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+      const resultChar = String.fromCharCode(xorResult);
+      result += resultChar;
+
+      const hexResultChar = toHexString(resultChar);
+      steps.push(`Step ${i + 1}:\n- Take '${originalChar}' (ASCII ${text.charCodeAt(i)})\n- XOR with '${keyChar}' (ASCII ${key.charCodeAt(i % key.length)})\n- Result: '${resultChar}' (ASCII ${xorResult} - Hex: ${hexResultChar})`);
+    }
+    return { result, steps };
+  }
+
+  function encrypt() {
+    const message = document.getElementById('message').value;
+    const key = document.getElementById('key').value;
+
+    if (key.length !== 8) {
+      alert("Key must be exactly 8 characters long!");
+      return;
+    }
+
+    const nonce = Math.random().toString(36).substring(2, 10);
+    const encryptionResult = simpleDES(message, key);
+    const ciphertext = btoa(encryptionResult.result);
+    const tag = btoa(simpleDES("verify", key).result);
+
+    storedCipher = ciphertext;
+    storedNonce = nonce;
+    storedTag = tag;
+
+    encryptionSteps = encryptionResult.steps;
+    const hexResult = toHexString(encryptionResult.result);
+    encryptionSteps.push(`✅ Final XOR Result (Hexadecimal before Base64): ${hexResult}`);
+    encryptionSteps.push(`✅ Ciphertext (Base64): ${ciphertext}`);
+    encryptionSteps.push(`Nonce: ${nonce}`);
+    encryptionSteps.push(`Tag: ${tag}`);
+
+    currentStep = 0;
+    mode = 'encrypt';
+    document.getElementById('output').innerText = "🔵 Ready to show encryption steps.\nClick Next Step!";
+  }
+
+  function decrypt() {
+    const key = document.getElementById('key').value;
+
+    if (!storedCipher || !storedTag || !storedNonce) {
+      alert("No message encrypted yet!");
+      return;
+    }
+
+    const decodedCipher = atob(storedCipher);
+    const decryptionResult = simpleDES(decodedCipher, key);
+    const verifyTag = btoa(simpleDES("verify", key).result);
+
+    if (verifyTag !== storedTag) {
+      document.getElementById('output').innerText = "❌ Message is corrupted or key is incorrect!";
+      return;
+    }
+
+    decryptionSteps = decryptionResult.steps;
+    decryptionSteps.push(`✅ Decrypted Plaintext: ${decryptionResult.result}`);
+
+    currentStep = 0;
+    mode = 'decrypt';
+    document.getElementById('output').innerText = "🔵 Ready to show decryption steps.\nClick Next Step!";
+  }
+
+  function nextStep() {
+    let steps = mode === 'encrypt' ? encryptionSteps : decryptionSteps;
+
+    if (!steps.length) {
+      document.getElementById('output').innerText = "❗ No operation started yet. Please encrypt or decrypt first.";
+      return;
+    }
+
+    if (currentStep < steps.length) {
+      document.getElementById('output').innerText = steps.slice(0, currentStep + 1).join("\n\n");
+      currentStep++;
+    } else {
+      document.getElementById('output').innerText += "\n\n✅ All steps completed.";
+    }
+  }
+
+  function fillExample(message, key) {
+    document.getElementById('message').value = message;
+    document.getElementById('key').value = key;
+    document.getElementById('output').innerText = "";
+  }
+
+  function goBack() {
+    window.history.back();
+  }
+</script>
+
+</body>
+</html>

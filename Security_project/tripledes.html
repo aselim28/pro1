@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Triple DES Simulation</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .left-panel, .right-panel {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+      /* box-shadow: 0 0 10px rgba(0,0,0,0.6); */
+
+    }
+
+    .left-panel {
+      background: #ffffff;
+      /* border-right: 1px solid #ccc; */
+      position: relative;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      max-width: 600px;
+      margin: auto;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .right-panel {
+      background: #ffffff;
+      /* border-right: 1px solid #ccc; */
+      position: relative;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      max-width: 600px;
+      margin: auto;
+      flex: 1;
+      overflow-y: auto;    }
+
+    h2, h3 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    input, button {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    input {
+      background-color: #fafafa;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .output, .steps {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      margin-top: 20px;
+    }
+
+    .example-card {
+      background: #e8f5e9;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .example-card button {
+      background-color: #4CAF50;
+    }
+    .example-card button:hover {
+      background-color: #45a049;
+    }
+    @media (max-width: 600px) {
+      input, button {
+        width: calc(100% - 15px);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="left-panel">
+  <h2>Triple DES Simulation</h2>
+
+  <label for="message">Enter Message:</label>
+  <input type="text" id="message" placeholder="Enter your message here">
+
+  <label for="key1">Key 1 (8 characters):</label>
+  <input type="text" id="key1" maxlength="8" placeholder="Key 1">
+
+  <label for="key2">Key 2 (8 characters):</label>
+  <input type="text" id="key2" maxlength="8" placeholder="Key 2">
+
+  <label for="key3">Key 3 (8 characters):</label>
+  <input type="text" id="key3" maxlength="8" placeholder="Key 3">
+
+  <button onclick="tripleDESEncryptStepByStep()">Encrypt Step-by-Step</button>
+  <button onclick="tripleDESDecryptStepByStep()">Decrypt Step-by-Step</button>
+  <button onclick="goBack()">Back</button>
+
+  <div class="output" id="output"></div>
+  <div class="steps" id="steps"></div>
+</div>
+
+<div class="right-panel">
+  <h3>Examples</h3>
+
+  <div class="example-card">
+    <strong>Message:</strong> hello123<br>
+    <strong>Key1:</strong> keyfirst<br>
+    <strong>Key2:</strong> keysecnd<br>
+    <strong>Key3:</strong> keythird<br>
+    <button onclick="fillExample('hello123', 'keyfirst', 'keysecnd', 'keythird')">Use this Example</button>
+  </div>
+
+  <div class="example-card">
+    <strong>Message:</strong> mysecret<br>
+    <strong>Key1:</strong> secret11<br>
+    <strong>Key2:</strong> secret22<br>
+    <strong>Key3:</strong> secret33<br>
+    <button onclick="fillExample('mysecret', 'secret11', 'secret22', 'secret33')">Use this Example</button>
+  </div>
+
+  <div class="example-card">
+    <strong>Message:</strong> abcdefgh<br>
+    <strong>Key1:</strong> key12345<br>
+    <strong>Key2:</strong> 87654321<br>
+    <strong>Key3:</strong> abc12345<br>
+    <button onclick="fillExample('abcdefgh', 'key12345', '87654321', 'abc12345')">Use this Example</button>
+  </div>
+
+  <div class="example-card">
+    <strong>Message:</strong> example1<br>
+    <strong>Key1:</strong> key11111<br>
+    <strong>Key2:</strong> key22222<br>
+    <strong>Key3:</strong> key33333<br>
+    <button onclick="fillExample('example1', 'key11111', 'key22222', 'key33333')">Use this Example</button>
+  </div>
+</div>
+
+<script>
+let storedCipher = "";
+
+function toHexString(str) {
+  return Array.from(str)
+    .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
+    .join(' ');
+}
+
+function simpleXOR(text, key) {
+  let result = "";
+  for (let i = 0; i < text.length; i++) {
+    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return result;
+}
+
+function tripleDESEncryptStepByStep() {
+  const msg = document.getElementById("message").value;
+  const k1 = document.getElementById("key1").value;
+  const k2 = document.getElementById("key2").value;
+  const k3 = document.getElementById("key3").value;
+
+  if (k1.length !== 8 || k2.length !== 8 || k3.length !== 8) {
+    alert("Each key must be exactly 8 characters!");
+    return;
+  }
+
+  let steps = "";
+  steps += `Original Message: ${msg}\n`;
+
+  const step1 = simpleXOR(msg, k1);
+  steps += `Step 1 (Encrypt with Key1): ${toHexString(step1)}\n`;
+
+  const step2 = simpleXOR(step1, k2);
+  steps += `Step 2 (Decrypt with Key2): ${toHexString(step2)}\n`;
+
+  const step3 = simpleXOR(step2, k3);
+  steps += `Step 3 (Encrypt with Key3): ${toHexString(step3)}\n`;
+
+  storedCipher = btoa(step3);
+  steps += `Base64 Encoded Ciphertext: ${storedCipher}\n`;
+
+  document.getElementById("output").innerText = `Ciphertext (Base64):\n${storedCipher}`;
+  document.getElementById("steps").innerText = steps;
+}
+
+function tripleDESDecryptStepByStep() {
+  const k1 = document.getElementById("key1").value;
+  const k2 = document.getElementById("key2").value;
+  const k3 = document.getElementById("key3").value;
+
+  if (!storedCipher) {
+    alert("You must encrypt something first.");
+    return;
+  }
+
+  let steps = "";
+
+  const decoded = atob(storedCipher);
+  steps += `Base64 Decoded Cipher: ${toHexString(decoded)}\n`;
+
+  const step1 = simpleXOR(decoded, k3);
+  steps += `Step 1 (Decrypt with Key3): ${toHexString(step1)}\n`;
+
+  const step2 = simpleXOR(step1, k2);
+  steps += `Step 2 (Encrypt with Key2): ${toHexString(step2)}\n`;
+
+  const step3 = simpleXOR(step2, k1);
+  steps += `Step 3 (Decrypt with Key1): ${toHexString(step3)}\n`;
+
+  document.getElementById("output").innerText = `Decrypted Plaintext:\n${step3}`;
+  document.getElementById("steps").innerText = steps;
+}
+
+function fillExample(message, key1, key2, key3) {
+  document.getElementById('message').value = message;
+  document.getElementById('key1').value = key1;
+  document.getElementById('key2').value = key2;
+  document.getElementById('key3').value = key3;
+  document.getElementById('output').innerText = "";
+  document.getElementById('steps').innerText = "";
+}
+
+function goBack() {
+  window.history.back();
+}
+</script>
+
+</body>
+</html>

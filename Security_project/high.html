@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encryption Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    .menu {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      max-width: 400px;
+      margin: auto;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #output {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Encryption Tool</h1>
+  <div class="menu">
+    <p>Choose an encryption method:</p>
+    <div>
+        <a href="singledes.html"> <button onclick="selectMethod('Single DES')">Single DES</button></a>
+    </div>
+    <div>   
+        <a href="tripledes.html"> <button onclick="selectMethod('Triple DES')">Triple DES</button></a> 
+    </div>
+    <div>
+        <a href="RSA.html"> <button onclick="selectMethod('RSA')">RSA</button></a>
+    </div>
+
+    <div id="output"></div>
+
+    <!-- <div id="continueSection" style="display:none;">
+      <p>Would you like to continue?</p>
+      <button onclick="restart()">Yes</button>
+      <button onclick="exitProgram()">No</button>
+    </div> -->
+  </div>
+
+  <script>
+    function selectMethod(method) {
+      document.getElementById("output").innerText = `You have selected \"${method}\"`;
+      document.getElementById("continueSection").style.display = "block";
+    }
+
+    function restart() {
+      document.getElementById("output").innerText = "";
+      document.getElementById("continueSection").style.display = "none";
+    }
+
+    function exitProgram() {
+      document.getElementById("output").innerText = "Thank you, exiting program...";
+      document.getElementById("continueSection").style.display = "none";
+      setTimeout(() => {
+        document.getElementById("output").innerText += " Bye!";
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

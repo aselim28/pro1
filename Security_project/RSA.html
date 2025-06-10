@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RSA Encryption & Decryption</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f4f4f4;
+      color: #333;
+    }
+    h2 { color: #2c3e50; }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-right: 10px;
+      width: 23%;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .encrypt { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>RSA Encryption & Decryption</h2>
+  <div class="encrypt">
+    <div>
+      <label>P</label>
+      <input id="pVal" type="number" />
+    </div>
+    <div>
+      <label>Q</label>
+      <input id="qVal" type="number" />
+    </div>
+    <div style="grid-column: span 2;">
+      <label>Message (رقم أو نص)</label>
+      <input id="msg" type="text" />
+    </div>
+    <div style="grid-column: span 2;">
+      <label>Encrypted Text (أرقام مفصولة بمسافة)</label>
+      <input id="encryptedText" type="text" />
+    </div>
+  </div>
+
+  <button onclick="generateKeys()">Generate Keys</button>
+  <button onclick="encrypt()">Encrypt</button>
+  <button onclick="decrypt()">Decrypt</button>
+  <button onclick="goBack()">Back</button>
+
+  <h3>Output</h3>
+  <textarea id="cipherText" rows="4" readonly></textarea>
+
+  <script>
+    let publicKey = {}, privateKey = {};
+
+    function isPrime(num) {
+      if (num <= 1) return false;
+      if (num <= 3) return true;
+      if (num % 2 === 0 || num % 3 === 0) return false;
+      for (let i = 5; i * i <= num; i += 6) {
+        if (num % i === 0 || num % (i + 2) === 0) return false;
+      }
+      return true;
+    }
+
+    function gcd(a, b) {
+      while (b !== 0) {
+        [a, b] = [b, a % b];
+      }
+      return a;
+    }
+
+    function modInverse(e, phi) {
+  let [a, m] = [e, phi];
+  let [m0, x0, x1] = [m, 0, 1];
+
+  while (a > 1) {
+    let q = Math.floor(a / m);
+    [a, m] = [m, a % m];
+    [x0, x1] = [x1 - q * x0, x0];
+  }
+
+  if (x1 < 0) x1 += m0;
+  return x1;
+}
+
+
+    function modPow(base, exp, mod) {
+      let result = 1;
+      base = base % mod;
+      while (exp > 0) {
+        if (exp % 2 === 1) result = (result * base) % mod;
+        exp = Math.floor(exp / 2);
+        base = (base * base) % mod;
+      }
+      return result;
+    }
+
+    function generateKeys() {
+  let p = parseInt(document.getElementById("pVal").value);
+  let q = parseInt(document.getElementById("qVal").value);
+  if (p !== 3 || q !== 11) {
+    alert("للتجربة زي الصورة، خلي P = 3 و Q = 11");
+    return;
+  }
+
+  const n = p * q;
+  const phi = (p - 1) * (q - 1);
+  const e = 7; // ثابت حسب المثال
+  const d = modInverse(e, phi); // المفروض يرجع 3
+
+  publicKey = { e, n };
+  privateKey = { d, n };
+
+  alert(`تم توليد المفاتيح:\nالمفتاح العام: e=${e}, n=${n}\nالمفتاح الخاص: d=${d}, n=${n}`);
+}
+
+
+
+  
+    function encrypt() {
+      const text = document.getElementById("msg").value.trim();
+
+      if (!isNaN(text)) {
+        const m = parseInt(text);
+        const c = modPow(m, publicKey.e, publicKey.n);
+        document.getElementById("cipherText").value = c;
+      } else {
+        const result = [...text].map(char => {
+          const m = char.charCodeAt(0);
+          return modPow(m, publicKey.e, publicKey.n);
+        });
+        document.getElementById("cipherText").value = result.join(" ");
+      }
+    }
+
+    function decrypt() {
+      const text = document.getElementById("encryptedText").value.trim();
+      const parts = text.split(" ").map(Number);
+
+      // لو المستخدم فك تشفير رقم بس (مثال الكتاب)
+      if (parts.length === 1 && !isNaN(parts[0])) {
+        const m = modPow(parts[0], privateKey.d, privateKey.n);
+        document.getElementById("cipherText").value = `Decrypted number: ${m}`;
+    } else {
+        const result = parts.map(c => {
+          const m = modPow(c, privateKey.d, privateKey.n);
+          return String.fromCharCode(m);
+        });
+        document.getElementById("cipherText").value = result.join("");
+      }
+    }
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>
