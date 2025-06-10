@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Golden Section Search</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1a1e22; 
+      padding: 20px;
+    }
+    h2{    color: #70c1a9;
+      font-size: 40px;
+      text-align: center;
+    }
+    input {
+      margin: 5px;
+      padding: 8px;
+      font-size: 16px;
+      color: #70c1a9;
+    }
+    button{
+      padding: 10px 20px;
+      width: 15%;
+      margin-top: 10px;
+      margin-right: 10px;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      color: #70c1a9;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #555;
+      text-align: center;
+      color: #70c1a9;
+    }
+    th {
+      background: #333;
+    }
+    .highlight {
+      background-color: cyan;
+      font-weight: bold;
+      color: #70c1a9;
+    }
+    .result {
+      margin-top: 20px;
+      background-color: transparent;
+      padding: 15px;
+      color: #70c1a9;
+    }
+    .te{color: #70c1a9}
+    .header-btns
+    {    
+    font-size: 15px;
+    /* color: white; */
+    margin-top: 10px;
+    padding: 5px 5px;
+    border-radius: 5px;
+    border-color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+    }
+    .header-btns:hover
+    {
+    background-color: #ccc;
+    /* color: #303030; */
+    }
+    .header-btn2
+    {
+    background-color: transparent;
+    border: 2px solid #70c1a9;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Golden Section Search</h2>
+
+<label class="te">Function f(x):</label>
+<input class="header-btn2" type="text" id="func" placeholder="2 * Math.sin(x) - Math.pow(x,2)" /><br>
+
+<label class="te">Lower Bound (XL):</label>
+<input class="header-btn2" type="number" id="xl" placeholder="0"><br>
+
+<label class="te">Upper Bound (XU):</label>
+<input class="header-btn2" type="number" id="xu" placeholder="4"><br>
+
+<label class="te">Number of Iterations:</label>
+<input class="header-btn2" type="number" id="iterations" placeholder="8"><br>
+
+<button class="header-btns te header-btn2" onclick="goldenSection()">Calculate</button>
+<button  type="button" onclick="goBack()" class="header-btn2 te header-btns">Back</button>
+
+
+<table id="outputTable">
+  <thead>
+    <tr>
+      <th class="header-btn2 te">i</th>
+      <th class="header-btn2 te">XL</th>
+      <th class="header-btn2 te">F(XL)</th>
+      <th class="header-btn2 te">X2</th>
+      <th class="header-btn2 te">F(X2)</th>
+      <th class="header-btn2 te">X1</th>
+      <th class="header-btn2 te">F(X1)</th>
+      <th class="header-btn2 te">XU</th>
+      <th class="header-btn2 te">F(XU)</th>
+      <th class="header-btn2 te">D</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div class="result" id="result"></div>
+
+<script>
+function goldenSection() {
+  const funcStr = document.getElementById("func").value;
+  const f = (x) => eval(funcStr);
+
+  let xl = parseFloat(document.getElementById("xl").value);
+  let xu = parseFloat(document.getElementById("xu").value);
+  const n = parseInt(document.getElementById("iterations").value);
+
+  const r = (Math.sqrt(5) - 1) / 2; // Golden ratio conjugate ≈ 0.618
+  const table = document.querySelector("#outputTable tbody");
+  table.innerHTML = "";
+
+  let d = r * (xu - xl);
+  let x1 = xl + d;
+  let x2 = xu - d;
+
+  for (let i = 1; i <= n; i++) {
+    const fxl = f(xl);
+    const fxu = f(xu);
+    const fx1 = f(x1);
+    const fx2 = f(x2);
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${i}</td>
+      <td>${xl.toFixed(4)}</td>
+      <td>${fxl.toFixed(4)}</td>
+      <td class="highlight">${x2.toFixed(4)}</td>
+      <td class="highlight">${fx2.toFixed(4)}</td>
+      <td class="highlight">${x1.toFixed(4)}</td>
+      <td class="highlight">${fx1.toFixed(4)}</td>
+      <td>${xu.toFixed(4)}</td>
+      <td>${fxu.toFixed(4)}</td>
+      <td>${d.toFixed(4)}</td>
+    `;
+    table.appendChild(row);
+
+    if (fx2 > fx1) {
+      xu = x1;
+      x1 = x2;
+      x2 = xu - r * (xu - xl);
+    } else {
+      xl = x2;
+      x2 = x1;
+      x1 = xl + r * (xu - xl);
+    }
+    d = r * (xu - xl);
+  }
+
+  const finalX = (xl + xu) / 2;
+  const finalFx = f(finalX);
+  document.getElementById("result").innerText =
+    `Estimated maximum at x ≈ ${finalX.toFixed(4)} with f(x) ≈ ${finalFx.toFixed(4)}`;
+}
+function goBack() {
+      window.history.back();
+    }
+</script>
+
+</body>
+</html>

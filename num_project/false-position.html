@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>False Position Method</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <style>
+    body { font-family: Arial; margin: 20px;  background-color: #1a1e22; }
+     th, td {
+      border: 1px solid #555;
+      border-collapse: collapse;
+      padding: 6px 12px;
+      text-align: center;
+    }
+    h3{color: #70c1a9}
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 100%;
+      color: #70c1a9
+    }
+    th { background-color: #f2f2f2; }
+    input, textarea { padding: 6px; margin: 5px; width: 100%;color: #70c1a9 }
+    button { padding: 8px 16px; margin-top: 10px; width: 15%;}
+    .te{color: #70c1a9}
+
+.header-btns
+{    
+    font-size: 15px;
+    /* color: white; */
+    margin-top: 10px;
+    padding: 5px 5px;
+    border-radius: 5px;
+    border-color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.header-btns:hover
+{
+    background-color: #ccc;
+    /* color: #303030; */
+}
+.header-btn2
+{
+    background-color: transparent;
+    border: 2px solid #70c1a9;
+}
+  </style>
+</head>
+<body>
+
+  <h1 class="text-center py-3 te ">False Position Method</h1>
+
+  <label class="te">Function f(x):</label>
+  <textarea class="header-btn2" id="fxInput" placeholder="e.g., x * Math.log10(x) - 1.2"></textarea>
+
+  <label class="te">xl: <input type="number" class="header-btn2" id="xl" step="any"></label>
+  <label class="te">xu: <input type="number" class="header-btn2" id="xu" step="any"></label>
+  <label class="te"><abbr>ε</abbr><small>a</small> (%):<input class="header-btn2" type="number" id="eps" step="any"></label>
+  <div class="p-1 mb-4">
+    <button onclick="startFalsePosition()" class="header-btns te header-btn2">Calculate</button>
+    <button onclick="goBack()" class="header-btns te header-btn2">Back</button>
+  </div>
+
+  <h3 class="te">Iterations Table</h3>
+  <table id="resultTable">
+    <thead>
+      <tr>
+        <th class="header-btn2 te">Iteration</th>
+        <th class="header-btn2 te">xl</th>
+        <th class="header-btn2 te">fxl</th>
+        <th class="header-btn2 te">xu</th>
+        <th class="header-btn2 te">fxu</th>
+        <th class="header-btn2 te">xr</th>
+        <th class="header-btn2 te">fxr</th>
+        <th class="header-btn2 te">ε</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3 class="color:#70c1a9" id="finalResult"></h3>
+
+  <script>
+   function evaluateFunction(expr, x) {
+  try {
+    return Function("x", "return " + expr)(x);
+  } catch {
+    return NaN;
+  }
+}
+
+    
+
+    function startFalsePosition() {
+      const fxInput = document.getElementById("fxInput").value;
+      let xl = parseFloat(document.getElementById("xl").value);
+      let xu = parseFloat(document.getElementById("xu").value);
+      const ep = parseFloat(document.getElementById("eps").value);
+      const tableBody = document.querySelector("#resultTable tbody");
+      tableBody.innerHTML = "";
+
+      let xrOld = 0, error = 100, iter = 0, xr;
+
+      while (error > ep) {
+        let fxl = evaluateFunction(fxInput, xl);
+        let fxu = evaluateFunction(fxInput, xu);
+        xr = xu - (fxu * (xl - xu)) / (fxl - fxu);
+        let fxr = evaluateFunction(fxInput, xr);
+
+
+        if (iter > 0) {
+          error = Math.abs((xr - xrOld) / xr) * 100;
+        }
+
+        let row = `
+          <tr>
+            <td>${iter}</td>
+            <td>${xl.toFixed(5)}</td>
+            <td>${fxl.toFixed(5)}</td>
+            <td>${xu.toFixed(5)}</td>
+            <td>${fxu.toFixed(5)}</td>
+            <td>${xr.toFixed(5)}</td>
+            <td>${fxr.toFixed(5)}</td>
+            <td>${iter === 0 ? "-" : error.toFixed(5)}%</td>
+          </tr>`;
+        tableBody.innerHTML += row;
+
+        if (fxl * fxr < 0) {
+      xu = xr;
+    } else {
+      xl = xr;
+    }
+
+    xrOld = xr;
+    iter++;
+
+    if (error < ep && iter > 0) break;
+
+      
+      }
+
+      document.getElementById("finalResult").textContent =
+        `Thus, The Required Root is ≈ ${xr.toFixed(6)}`;
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+
+</body>
+</html>

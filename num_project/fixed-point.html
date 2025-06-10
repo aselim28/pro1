@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="css/bootstrap.min.css" />
+  <title>Fixed-Point Method</title>
+  <style>
+    body{font-family: Arial; margin: 20px;     background-color: #1a1e22;
+    }
+    input, textarea { padding: 6px; margin: 5px; width: 100%; color: #70c1a9;}
+    h1{    color: #70c1a9;
+      font-size: 40px;
+      font-weight: 600;
+    }
+    .te{color: #70c1a9}
+    button{
+      width: 15%;
+    }
+
+.header-btns
+{    
+    font-size: 15px;
+    /* color: white; */
+    margin-top: 10px;
+    padding: 5px 5px;
+    border-radius: 5px;
+    border-color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.header-btns:hover
+{
+    background-color: #ccc;
+    /* color: #303030; */
+}
+.header-btn2
+{
+    background-color: transparent;
+    border: 2px solid #70c1a9;
+}
+  </style>
+</head>
+<body>
+  <h1 class="text-center py-3">FIXED-POINT METHOD</h1>
+
+  <div class="container py-5">
+    <div class="form-group mb-3">
+      <label for="xo"  class="te" >X₀</label>
+      <input type="number" class="header-btn2"  id="xo" class="form-control" />
+    </div>
+    <div class="form-group mb-3">
+      <label for="eps"  class="te">EPS </label>
+      <input type="number"  class="header-btn2" id="eps" class="form-control" step="any"/>
+    </div>
+    <div class="form-group mb-3">
+      <label for="gFunc"  class="te">FUNCTION g(x)</label>
+      <textarea id="gFunc"  class="header-btn2" class="form-control"></textarea>
+    </div>    
+    <button onclick="startFixedPoint()" class="header-btns te header-btn2">Calculate</button>
+    <button onclick="goBack()" class="header-btns te header-btn2">Back</button>
+  </div>
+
+  <div class="container">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th class="header-btn2 te">Iteration</th>
+          <th class="header-btn2 te">X₀</th>
+          <th class="header-btn2 te">g(X)</th>
+          <th class="header-btn2 te">EPS%</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <h3 class="text-center te header-btn2" id="finalResult"></h3>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+  <script>
+    function startFixedPoint() {
+      const xo = parseFloat(document.getElementById("xo").value);
+      const eps = parseFloat(document.getElementById("eps").value);
+      const funcStr = document.getElementById("gFunc").value;
+
+      if (isNaN(xo) || isNaN(eps) || !funcStr.trim()) {
+        alert("Please fill in all values correctly.");
+        return;
+      }
+
+      let g;
+      try {
+        g = math.compile(funcStr);
+        const test = g.evaluate({ x: xo });
+        if (isNaN(test)) throw new Error();
+      } catch (err) {
+        alert("for example(x^3 + 4*x^2 - 10)/7");
+        return;
+      }
+
+      let xi = xo;
+      let error = 100;
+      let iter = 0;
+      const maxIter = 100;
+      const tableBody = document.getElementById("tableBody");
+      tableBody.innerHTML = "";
+
+      while (error > eps && iter < maxIter) {
+        let xiNext;
+        try {
+          xiNext = g.evaluate({ x: xi });
+          if (typeof xiNext !== 'number' || isNaN(xiNext)) throw new Error();
+        } catch {
+          alert("calculation error g(x).");
+          return;
+        }
+
+        if (iter !== 0) {
+          error = Math.abs((xiNext - xi) / xiNext) * 100;
+        }
+
+        const row = `<tr>
+          <td>${iter + 1}</td>
+          <td>${xi.toFixed(6)}</td>
+          <td>${xiNext.toFixed(6)}</td>
+          <td>${iter === 0 ? "---" : error.toFixed(6)}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+
+        xi = xiNext;
+        iter++;
+      }
+
+      if (iter >= maxIter) {
+        alert("The solution does not converge after 100 repetitions.");
+      }
+      
+      document.getElementById("finalResult").textContent =
+        `Thus, The Required Root is ≈ ${xi.toFixed(6)}`;
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>

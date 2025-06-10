@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gaussian Elimination Solver</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css" />
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      text-align: center;
+      background-color: #1a1e22;    }
+    h1{    color: #70c1a9;
+      font-size: 40px;
+      font-weight: 600;
+    }
+    table {
+      margin-bottom: 15px;
+      text-align: center;
+      color: #70c1a9;
+    }
+    td {
+      padding: 5px;
+    }
+    input:hover{
+      background-color: #ccc;
+    }
+    input[type="number"] {
+      width: 60px;
+      color: #70c1a9;
+    }
+    button {
+      padding: 10px 20px;
+      width: 15%;
+      margin-top: 10px;
+      margin-right: 10px;
+    }
+    .result {
+      margin-top: 20px;
+      background-color: transparent;
+      padding: 15px;
+      color: #70c1a9;
+      border: 2px solid #70c1a9;
+      box-shadow: 0 0 5px #ccc;
+    }
+    .te{color: #70c1a9}
+    .header-btns
+    {    
+    font-size: 15px;
+    /* color: white; */
+    margin-top: 10px;
+    padding: 5px 5px;
+    border-radius: 5px;
+    border-color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+    }
+    .header-btns:hover
+    {
+    background-color: #ccc;
+    /* color: #303030; */
+    }
+    .header-btn2
+    {
+    background-color: transparent;
+    border: 2px solid #70c1a9;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="text-center py-3 ">Gaussian Elimination METHOD</h1>
+
+  <form id="gaussForm" >
+    <table >
+      <tr >
+        <td ><input class="header-btn2" type="number" id="a00" required></td>
+        <td><input class="header-btn2" type="number" id="a01" required></td>
+        <td ><input class="header-btn2" type="number" id="a02" required></td>
+        <td>=</td>
+        <td ><input class="header-btn2" type="number" id="a03" required></td>
+      </tr>
+      <tr>
+        <td><input  class="header-btn2" type="number" id="a10" required></td>
+        <td><input class="header-btn2" type="number" id="a11" required></td>
+        <td><input class="header-btn2" type="number" id="a12" required></td>
+        <td>=</td>
+        <td><input class="header-btn2" type="number" id="a13" required></td>
+      </tr>
+      <tr>
+        <td><input class="header-btn2" type="number" id="a20" required></td>
+        <td><input class="header-btn2" type="number" id="a21" required></td>
+        <td><input class="header-btn2" type="number" id="a22" required></td>
+        <td>=</td>
+        <td><input class="header-btn2" type="number" id="a23" required></td>
+      </tr>
+    </table>
+    <button type="button" class="header-btn2 te header-btns"onclick="solve(false)">Solve (Standard)</button>
+    <button type="button" class="header-btn2 te header-btns" onclick="solve(true)">Solve (Partial Pivoting)</button>
+    <button  type="button" onclick="goBack()" class="header-btn2 te header-btns">Back</button>
+  </form>
+
+  <div class="result" id="output"></div>
+
+  <script>
+    function solve(usePivoting) {
+      const get = id => parseFloat(document.getElementById(id).value);
+      let a = [
+        [get("a00"), get("a01"), get("a02"), get("a03")],
+        [get("a10"), get("a11"), get("a12"), get("a13")],
+        [get("a20"), get("a21"), get("a22"), get("a23")]
+      ];
+
+      let n = 3;
+      let x = [0, 0, 0];
+      let stepList = [];
+
+      stepList.push(`<b>Method:</b> ${usePivoting ? "Gaussian Elimination with Partial Pivoting" : "Standard Gaussian Elimination"}`);
+
+      let matrixStr = "<b>Initial Augmented Matrix:</b><br><pre>" + a.map(row => row.map(num => num.toFixed(2)).join("\t")).join("\n") + "</pre>";
+      stepList.push(matrixStr);
+
+      // Forward Elimination
+      for (let i = 0; i < n; i++) {
+        if (usePivoting) {
+          let maxRow = i;
+          for (let k = i + 1; k < n; k++) {
+            if (Math.abs(a[k][i]) > Math.abs(a[maxRow][i])) {
+              maxRow = k;
+            }
+          }
+          if (maxRow !== i) {
+            let temp = a[i];
+            a[i] = a[maxRow];
+            a[maxRow] = temp;
+            stepList.push(`<b>Swapped row ${i + 1} with row ${maxRow + 1} (Partial Pivoting)</b>`);
+          }
+        }
+
+        if (a[i][i] === 0) {
+          stepList.push("<b>Error: Division by zero detected!</b>");
+          document.getElementById("output").innerHTML = stepList.join("<hr>");
+          return;
+        }
+
+        for (let j = i + 1; j < n; j++) {
+          let ratio = a[j][i] / a[i][i];
+          for (let k = 0; k < n + 1; k++) {
+            a[j][k] -= ratio * a[i][k];
+          }
+          stepList.push(`<b>Eliminated row ${j + 1} using row ${i + 1}</b><br><pre>${a.map(row => row.map(num => num.toFixed(2)).join("\t")).join("\n")}</pre>`);
+        }
+      }
+
+      // Back Substitution
+      x[n - 1] = a[n - 1][n] / a[n - 1][n - 1];
+      for (let i = n - 2; i >= 0; i--) {
+        x[i] = a[i][n];
+        for (let j = i + 1; j < n; j++) {
+          x[i] -= a[i][j] * x[j];
+        }
+        x[i] = x[i] / a[i][i];
+      }
+
+      stepList.push("<b>Back Substitution Results:</b><br>" +
+        `x = ${x[0].toFixed(2)}<br>y = ${x[1].toFixed(2)}<br>z = ${x[2].toFixed(2)}`);
+
+      document.getElementById("output").innerHTML = stepList.join("<hr>");
+    }
+
+    // function resetSolver() {
+    //   location.reload();
+    // }
+
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>

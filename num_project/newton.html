@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Newton-Raphson Method</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <style>
+    body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #1a1e22;
+        }
+    input {
+            padding: 8px;
+            margin: 5px;
+            width: 50%;
+        }
+    button{
+            padding: 8px;
+            margin: 5px;
+            width: 15%;
+        }
+    h1{    color: #70c1a9;
+      font-size: 40px;
+      font-weight: 600;
+    }
+    table 
+    {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            color: #70c1a9;
+    }
+    table, th, td 
+    {
+            border: 1px solid #444;
+    }
+    th, td 
+    {
+            color: #f2f2f2;
+            padding: 8px;
+            text-align: center;
+    }
+    .back-btn {
+            margin-top: 20px;
+        }
+    .te{color: #70c1a9}
+    .header-btns
+    {    
+    font-size: 15px;
+    /* color: white; */
+    margin-top: 10px;
+    padding: 5px 5px;
+    border-radius: 5px;
+    border-color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+    }
+    .header-btns:hover
+    {
+    background-color: #ccc;
+    /* color: #303030; */
+    }
+    .header-btn2
+    {
+    background-color: transparent;
+    border: 2px solid #70c1a9;
+    }
+    </style>
+</head>
+<body>
+    <h1 class="text-center  py-3 ">Newton METHOD</h1>
+    <!-- <section class="container"> -->
+    <label class="te">a (constant):</label>
+    <input class="header-btn2" type="number" id="a" step="any"><br>
+
+    <label class="te">b (x):</label>
+    <input  class="header-btn2" type="number" id="b" step="any"><br>
+
+    <label class="te">c (x²):</label>
+    <input  class="header-btn2" type="number" id="c" step="any"><br>
+
+    <label class="te">d (x³):</label>
+    <input class="header-btn2" type="number" id="d" step="any"><br>
+
+    <label class="te">Initial guess (x₀):</label>
+    <input class="header-btn2" type="number" id="x0" step="any"><br>
+
+    <label class="te">Error ε (%):</label>
+    <input  class="header-btn2" type="number" id="eps" step="any"><br>
+    <button onclick="newtonRaphson()" class="header-btns te header-btn2">Calculate</button> 
+    <button class="header-btns te header-btn2" onclick="history.back()">Back</button>
+    <!-- </section> -->
+    <table id="resultTable">
+        <thead>
+            <tr>
+                <th class="header-btn2 te">Iteration</th>
+                <th class="header-btn2 te">X<sub>i</sub></th>
+                <th class="header-btn2 te">F(X<sub>i</sub>)</th>
+                <th class="header-btn2 te">F'(X<sub>i</sub>)</th>
+                <th class="header-btn2 te">Error (%)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <script>
+        function newtonRaphson() {
+            const a = parseFloat(document.getElementById("a").value);
+            const b = parseFloat(document.getElementById("b").value);
+            const c = parseFloat(document.getElementById("c").value);
+            const d = parseFloat(document.getElementById("d").value);
+            const eps = parseFloat(document.getElementById("eps").value);
+            let xi = parseFloat(document.getElementById("x0").value);
+            let xiNext = 0;
+            let error = 0;
+            let iter = 0;
+            const f = x => a + b * x + c * Math.pow(x, 2) + d * Math.pow(x, 3);
+            const fDash = x => b + 2 * c * x + 3 * d * Math.pow(x, 2);
+
+            const tbody = document.querySelector("#resultTable tbody");
+            tbody.innerHTML = "";
+
+            do {
+                const fx = f(xi);
+                const fdx = fDash(xi);
+
+                xiNext = xi - (fx / fdx);
+                if (iter > 0) {
+                    error = Math.abs((xiNext - xi) / xiNext) * 100;
+                }
+
+                const row = `<tr>
+                                <td>${iter}</td>
+                                <td>${xi.toFixed(6)}</td>
+                                <td>${fx.toFixed(6)}</td>
+                                <td>${fdx.toFixed(6)}</td>
+                                <td>${iter === 0 ? "—" : error.toFixed(4)}</td>
+                            </tr>`;
+                tbody.innerHTML += row;
+
+                xi = xiNext;
+                iter++;
+            } while (error > eps || iter === 1);
+        }
+    </script>
+</body>
+</html>

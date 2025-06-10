@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gauss-Jordan Elimination</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #1a1e22;
+    }
+    h2{    color: #70c1a9;
+      font-size: 40px;
+      font-weight: 600;
+    }
+    h3{
+      color: #70c1a9;
+      font-size: 20px;
+      /* font-weight: 600; */
+    }
+    table {
+      margin: auto;
+      border-collapse: collapse;
+      color: #70c1a9;
+    }
+    td, th {
+      border: 1px solid;
+      padding: 12px 20px;
+      font-size: 16px;
+      color: #70c1a9;
+    }
+    input[type="number"] {
+      width: 60px;
+      background-color: #1a1e22;
+      border: 2px solid #70c1a9;
+      color: #70c1a9;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      width: 15%;
+    }
+    #results {
+      margin-top: 30px;
+      color: #70c1a9;
+      background-color: transparent;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    }
+    #steps {
+      margin-top: 20px;
+      text-align: left;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: transparent;
+      padding: 15px;
+      border-radius: 10px;
+      color: #70c1a9;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    }
+    .method-select {
+      margin-bottom: 20px;
+      color: #70c1a9;
+    }
+    .te{color: #70c1a9}
+    .header-btns
+    {    
+    font-size: 15px;
+    /* color: white; */
+    margin-top: 10px;
+    padding: 5px 5px;
+    border-radius: 5px;
+    border-color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+    }
+    .header-btns:hover
+    {
+    background-color: #ccc;
+    /* color: #303030; */
+    }
+    .header-btn2
+    {
+    background-color: transparent;
+    border: 2px solid #70c1a9;
+    }
+  </style>
+</head>
+<body>
+  <h2 class="text-center py-3">Gauss-Jordan Elimination (Step-by-Step)</h2>
+  <div class="method-select">
+    <label class="te">
+      <input class="header-btn2" type="radio" name="method" value="normal" checked>
+      Gauss-Jordan without Pivoting
+    </label>
+    <label class="te">
+      <input class="header-btn2" type="radio" name="method" value="pivoting">
+      Gauss-Jordan with Partial Pivoting
+    </label>
+  </div>
+
+  <table id="inputTable"></table>
+  <button onclick="nextStep()"class="header-btns te header-btn2">Next Step</button>
+  <button onclick="resetSolver()" class="header-btns te header-btn2">Reset</button>
+  <button onclick="goBack()" class="header-btns te header-btn2"> Back </button>
+
+  <div id="results" style="display:none;">
+    <h3>Final Matrix:</h3>
+    <div id="matrix"></div>
+    <h3>Solution:</h3>
+    <div id="solution"></div>
+  </div>
+
+  <div id="steps"></div>
+
+  <script>
+    // انشاء الجدول مع استدعاء المتغيرات 
+    const table = document.getElementById("inputTable");
+    const n = 3;
+    let a = [];
+    let currentStep = 0;
+    let stepLog = [];
+    // إنشاء جدول الإدخال
+    for (let i = 0; i < n; i++) {
+      // للصفوف
+      const row = document.createElement("tr");
+      for (let j = 0; j < n + 1; j++) {
+        // الاعمده
+        const cell = document.createElement("td");
+        const input = document.createElement("input");
+        input.type = "number";
+        input.id = `cell-${i}-${j}`;
+        // appendChild ل اضافه عنصر جديد
+        cell.appendChild(input);
+        row.appendChild(cell);
+      }
+      table.appendChild(row);
+    }
+    // تحديد الطريقه partial او عاديه
+    function nextStep() {
+      const method = document.querySelector('input[name="method"]:checked').value;
+      if (method === 'normal') {
+        nextStepNormal();
+      } else {
+        nextStepWithPivoting();
+      }
+    }
+    // ==================== طريقة Gauss-Jordan بدون Pivoting ====================
+    // هنجمع البيانات من الجدول ونحولها ف مصفوفه
+    function nextStepNormal() {
+      if (currentStep === 0) {
+        a = [];
+        for (let i = 0; i < n; i++) {
+          a[i] = [];
+          for (let j = 0; j < n + 1; j++) {
+            a[i][j] = parseFloat(document.getElementById(`cell-${i}-${j}`).value) || 0;
+          }
+        }
+        stepLog = [`<strong>Initial augmented matrix:</strong>`];
+        logMatrix();
+      }
+      // بنتاكد ان العنصر القطرى مش صفر الديجاونل يعنى عشان منقسمش على صفر
+      if (currentStep < n) {
+        if (a[currentStep][currentStep] === 0) {
+          alert("Divide by zero detected!");
+          return;
+        }
+          // بنقسم الصف كله عشان العنصر القطري يبقى 1.
+      let divisor = a[currentStep][currentStep];
+        for (let k = 0; k < n + 1; k++) {
+          a[currentStep][k] /= divisor;
+        }
+        stepLog.push(`R${currentStep + 1} = R${currentStep + 1} ÷ ${divisor.toFixed(2)}`);
+        // بنستخدم الصف الحالي لإزالة باقي القيم في نفس العمود في بقية الصفوف.
+        for (let j = 0; j < n; j++) {
+          if (currentStep !== j) {
+            let factor = a[j][currentStep];
+            stepLog.push(`R${j + 1} = R${j + 1} - (${factor.toFixed(2)}) × R${currentStep + 1}`);
+            for (let k = 0; k < n + 1; k++) {
+              a[j][k] -= factor * a[currentStep][k];
+            }
+          }
+        }
+        stepLog.push(`<strong>Matrix after processing column ${currentStep + 1}:</strong>`);
+        logMatrix();
+        currentStep++;
+      } else if (currentStep === n) {
+        showSolution();
+        currentStep++;
+      }
+      updateSteps();
+    }
+    // ==================== طريقة Gauss-Jordan مع Partial Pivoting ====================
+    function nextStepWithPivoting() {
+      if (currentStep === 0) {
+        a = [];
+        for (let i = 0; i < n; i++) {
+          a[i] = [];
+          for (let j = 0; j < n + 1; j++) {
+            a[i][j] = parseFloat(document.getElementById(`cell-${i}-${j}`).value) || 0;
+          }
+        }
+        stepLog = ["<strong>Initial augmented matrix:</strong>"];
+        logMatrix();
+      }
+      if (currentStep < n) {
+  //  بندور على اكبر عنصر فى العمود الحالى ونبدله نخليه ف الاول
+        let maxRow = currentStep;
+        for (let i = currentStep + 1; i < n; i++) {
+          if (Math.abs(a[i][currentStep]) > Math.abs(a[maxRow][currentStep])) {
+            maxRow = i;
+          }
+        }
+        if (maxRow !== currentStep) {
+          [a[currentStep], a[maxRow]] = [a[maxRow], a[currentStep]];
+          stepLog.push(`Swapped Row ${currentStep + 1} with Row ${maxRow + 1} for partial pivoting.`);
+          logMatrix();
+        }
+        // لو لقينا صف أكبر، بنبدله.
+        if (a[currentStep][currentStep] === 0) {
+          alert("Divide by zero detected!");
+          return;
+        }
+        // تطبيع الصف الحالي
+        let divisor = a[currentStep][currentStep];
+        for (let k = 0; k < n + 1; k++) {
+          a[currentStep][k] /= divisor;
+        }
+        stepLog.push(`R${currentStep + 1} = R${currentStep + 1} ÷ ${divisor.toFixed(2)}`);
+        // إلغاء العناصر في الأعمدة الأخرى باستخدام الصف الحالي
+        for (let j = 0; j < n; j++) {
+          if (currentStep !== j) {
+            let factor = a[j][currentStep];
+            stepLog.push(`R${j + 1} = R${j + 1} - (${factor.toFixed(2)}) × R${currentStep + 1}`);
+            for (let k = 0; k < n + 1; k++) {
+              a[j][k] -= factor * a[currentStep][k];
+            }
+          }
+        }
+        stepLog.push(`<strong>Matrix after processing column ${currentStep + 1}:</strong>`);
+        logMatrix();
+        currentStep++;
+      } else if (currentStep === n) {
+        showSolution();
+        currentStep++;
+      }
+      updateSteps();
+    }
+    // بتجهز شكل المصفوفة للعرض في سجل الخطوات.
+    function logMatrix() {
+      let formatted = a.map(row => row.map(val => val.toFixed(2)).join("\t")).join("\n");
+      stepLog.push(`<pre>${formatted}</pre>`);
+    }
+    // بتعرض السجل كامل في HTML.
+    function updateSteps() {
+      document.getElementById("steps").innerHTML = stepLog.join("<br><br>");
+    }
+    // بعد ما نوصل للمصفوفه المطلوبة بنحسب كل متغير بقيمته
+    function showSolution() {
+      let x = [];
+      for (let i = 0; i < n; i++) {
+        x[i] = a[i][n] / a[i][i];
+      }
+      let solutionHTML = "";
+      for (let i = 0; i < n; i++) {
+        solutionHTML += `x${i + 1} = ${x[i].toFixed(2)}<br>`;
+      }
+      document.getElementById("solution").innerHTML = solutionHTML;
+      let matrixHTML = "<table>";
+      for (let i = 0; i < n; i++) {
+        matrixHTML += "<tr>";
+        for (let j = 0; j < n + 1; j++) {
+          matrixHTML += `<td>${a[i][j].toFixed(2)}</td>`;
+        }
+        matrixHTML += "</tr>";
+      }
+      matrixHTML += "</table>";
+      // عرض النتائج النهائية
+      document.getElementById("matrix").innerHTML = matrixHTML;
+      document.getElementById("results").style.display = 'block';
+    }
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>
